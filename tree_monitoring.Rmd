@@ -1,0 +1,55 @@
+---
+title: "tree_monitoring"
+author: "Anna Calle"
+date: "28/08/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Load necessary packages and read csv file
+library(tidyverse)
+tree_data <- read_csv("tree_monitoring.csv")
+
+```
+
+# Mortality rates
+```{r}
+# Mortalities
+mortalities <- tree_data %>% 
+  filter(Alive_or_Dead == "D") %>% 
+  count() %>% 
+  as.numeric()
+
+# Total planted
+
+
+# Total mortality rate
+
+# Mortality rate per year
+
+# Mortality rate per species
+
+# Note: rate of mortalty for specific year and species could be done if wanted
+```
+
+# Species composition
+```{r}
+# Species composition when planted
+sc_planted <- tree_data %>% 
+  filter(Stage == "Planted") %>% 
+  group_by(Species) %>% 
+  count(Species) %>% 
+  summarise(percentage= n/10*100)
+
+# Species composition @ 3rd year
+sc_3_yr <- tree_data %>% 
+  filter(Stage == "3_yr") %>% 
+  group_by(Species) %>% 
+  count(Species) %>% 
+  summarise(percentage= n/10*100)
+```
+
