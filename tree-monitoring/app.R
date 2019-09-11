@@ -21,15 +21,21 @@ ui <- fluidPage(
             selectInput("year", 
                         "Select year:",
                         choices = c( "2019", "2020", "2021", "2022"),
-                        selected = "2020"),
+                        selected = "2019"),
             tags$hr(style="border-color: gray;"),
             p("Select year of reforestation project. ")   
         ),
 
         # Show a plot of the generated distribution, p and map
         mainPanel(
-           leafletOutput("mymap",height = 500),
-           plotlyOutput("compositionPlot")
+            tabsetPanel(type = "tabs",
+                              tabPanel("Map", leafletOutput("mymap",height = 500)),
+                              tabPanel("Species", plotlyOutput("compositionPlot")),
+                              tabPanel("Mortalities", plotOutput("mortalityPlot"))
+            
+            
+           
+           )
         )
     ),
     
