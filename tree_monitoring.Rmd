@@ -21,42 +21,13 @@ tree_data <- read_csv("tree_monitoring.csv")
 
 ```
 
-# Species composition
-```{r}
-# Species composition when planted
-sc_planted <- tree_data %>% 
-  filter(Stage == "Planted") %>% 
-  group_by(Species) %>% 
-  count(Species) %>% 
-  summarise(percentage= n/10*100)
-
-# Species composition @ 3rd year
-sc_3_yr <- tree_data %>% 
-  filter(Stage == "3_yr") %>% 
-  group_by(Species) %>% 
-  count(Species) %>% 
-  summarise(percentage= n/10*100)
-```
-
 
 ```{r}
 # Pie chart with plotly
 
-# Just need table with species and number of trees as columns for each year (4 tables total)
 # More info in https://plot.ly/r/pie-charts/
 # Note: find how to animate it
 
-p <- plot_ly(sc_planted, labels = ~Species, values = ~percentage, type = 'pie', textposition = 'inside',
-        textinfo = 'label+percent',
-        hoverinfo = 'text',
-        text = ~paste( percentage, ' trees'),
-        showlegend = FALSE,
-        marker = list(colors = colors,
-                      line = list(color = '#FFFFFF', width = 1))) %>%
-  layout(title = 'Species Composition in Year 0',
-         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
-p
 ```
 
 ```{r}
