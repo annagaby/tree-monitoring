@@ -12,28 +12,13 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 # Load necessary packages and read csv file
 library(tidyverse)
+library(plotly)
+library(leaflet)
+library(sf)
+library(dplyr)
+
 tree_data <- read_csv("tree_monitoring.csv")
 
-```
-
-# Mortality rates
-```{r}
-# Mortalities
-mortalities <- tree_data %>% 
-  filter(Alive_or_Dead == "D") %>% 
-  count() %>% 
-  as.numeric()
-
-# Total planted
-
-
-# Total mortality rate
-
-# Mortality rate per year
-
-# Mortality rate per species
-
-# Note: rate of mortalty for specific year and species could be done if wanted
 ```
 
 # Species composition
@@ -52,4 +37,64 @@ sc_3_yr <- tree_data %>%
   count(Species) %>% 
   summarise(percentage= n/10*100)
 ```
+
+
+```{r}
+# Pie chart with plotly
+
+# Just need table with species and number of trees as columns for each year (4 tables total)
+# More info in https://plot.ly/r/pie-charts/
+# Note: find how to animate it
+
+p <- plot_ly(sc_planted, labels = ~Species, values = ~percentage, type = 'pie', textposition = 'inside',
+        textinfo = 'label+percent',
+        hoverinfo = 'text',
+        text = ~paste( percentage, ' trees'),
+        showlegend = FALSE,
+        marker = list(colors = colors,
+                      line = list(color = '#FFFFFF', width = 1))) %>%
+  layout(title = 'Species Composition in Year 0',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+p
+```
+
+```{r}
+sach_polygon <- st_read(dsn = ".", layer = "no_ref_polygon") 
+
+sach_polygon2 <- st_read(dsn = ".", layer = "ref_area_polygon") 
+```
+
+
+
+```{r}
+
+tree_data_20 = tree_data %>% 
+  filter( Year == 2020) %>% 
+  arrange(-Height) # arrange so that dead plants are last and red color shows over green
+
+
+pal <- colorFactor(c("green", "red"), tree_data_20$Alive_or_Dead)
+
+m <- leaflet(data = tree_data_20) %>%
+          addTiles() %>% 
+  addCircles(lng = ~Longitude,
+                     lat = ~Latitude,
+             weight = 3, radius=2.5, 
+                   color= ~pal(Alive_or_Dead),
+             stroke = TRUE, fillOpacity = 0.8,
+             popup = paste("<strong>Tree ID</strong>:", tree_data_20$ID, "<br>",
+                                   "<strong>Species:</strong>", tree_data_20$Species, "<br>",
+                           "<strong>Height:</strong>", tree_data_20$Height, " m" )) %>% 
+  
+   m
+```
+
+
+
+
+
+
+
+
 
