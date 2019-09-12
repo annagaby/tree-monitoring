@@ -38,30 +38,6 @@ sach_polygon2 <- st_read(dsn = ".", layer = "ref_area_polygon")
 
 
 
-```{r}
-
-tree_data_20 = tree_data %>% 
-  filter( Year == 2020) %>% 
-  arrange(-Height) # arrange so that dead plants are last and red color shows over green
-
-
-pal <- colorFactor(c("green", "red"), tree_data_20$Alive_or_Dead)
-
-m <- leaflet(data = tree_data_20) %>%
-          addTiles() %>% 
-  addCircles(lng = ~Longitude,
-                     lat = ~Latitude,
-             weight = 3, radius=2.5, 
-                   color= ~pal(Alive_or_Dead),
-             stroke = TRUE, fillOpacity = 0.8,
-             popup = paste("<strong>Tree ID</strong>:", tree_data_20$ID, "<br>",
-                                   "<strong>Species:</strong>", tree_data_20$Species, "<br>",
-                           "<strong>Height:</strong>", tree_data_20$Height, " m" )) %>% 
-  
-   m
-```
-
-
 
 
 
