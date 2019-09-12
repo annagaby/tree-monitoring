@@ -67,6 +67,8 @@ server <- function(input, output) {
             arrange(-Height) # arrange so that dead plants are last and red color shows over green
         
         # Create tree location map
+        pal <- colorFactor(c("green", "red"), tree_data_arranged$Alive_or_Dead) 
+        
         leaflet(data = tree_data_arranged) %>%
             addTiles() %>% 
             addCircles(lng = ~Longitude,
@@ -74,9 +76,9 @@ server <- function(input, output) {
                        weight = 3, radius=2.5, 
                        color= ~pal(Alive_or_Dead),
                        stroke = TRUE, fillOpacity = 0.8,
-                       popup = paste("<strong>Tree ID</strong>:", tree_data_20$ID, "<br>",
-                                     "<strong>Species:</strong>", tree_data_20$Species, "<br>",
-                                     "<strong>Height:</strong>", tree_data_20$Height, " m" ))
+                       popup = paste("<strong>Tree ID</strong>:", tree_data_arranged$ID, "<br>",
+                                     "<strong>Species:</strong>", tree_data_arranged$Species, "<br>",
+                                     "<strong>Height:</strong>", tree_data_arranged$Height, " m" ))
         
     })
     
