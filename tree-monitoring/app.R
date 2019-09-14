@@ -60,6 +60,7 @@ server <- function(input, output) {
     
     # Read files
     tree_data <- read_csv("tree_monitoring.csv")
+    sach_polygon <- st_read(dsn = ".", layer = "ref_area") 
     
     # Generate map ouput
     output$mymap <- renderLeaflet({
@@ -70,11 +71,16 @@ server <- function(input, output) {
             arrange(-Height) # arrange so that dead plants are last and red color shows over green
         
         # Create tree location map
-        pal <- colorFactor(c("green", "red"), tree_data_arranged$Alive_or_Dead) 
+        pal <- colorFactor(c("chartreuse4", "firebrick1"), tree_data_arranged$Alive_or_Dead) 
         
         leaflet(data = tree_data_arranged) %>%
             addTiles() %>% 
-            addCircles(lng = ~Longitude,
+            addPolygons(data = sach_polygon,
+                        color = "forestgreen",
+                        weight = 1,
+                        fillColor = "forestgreen") %>% 
+            addCircles(data = tree_data_arranged,
+                       lng = ~Longitude,
                        lat = ~Latitude,
                        weight = 3, radius=2.5, 
                        color= ~pal(Alive_or_Dead),
@@ -82,7 +88,9 @@ server <- function(input, output) {
                        popup = paste("<strong>Tree ID</strong>:", tree_data_arranged$ID, "<br>",
                                      "<strong>Species:</strong>", tree_data_arranged$Species, "<br>",
                                      "<strong>Height:</strong>", tree_data_arranged$Height, " m" )) %>% 
-            addLegend(pal = pal, values = ~Alive_or_Dead, opacity = 1, title = paste("Tree Survival", input$year))
+            addLegend(pal = pal, values = ~Alive_or_Dead, opacity = 1, title = paste("Tree Survival", input$year)) %>% 
+            addMiniMap(zoomLevelOffset = -8) %>% 
+            addScaleBar(position = "bottomleft")
         
     })
     
