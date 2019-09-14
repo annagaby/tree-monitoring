@@ -16,6 +16,8 @@ library(plotly)
 library(leaflet)
 library(sf)
 library(dplyr)
+library(RColorBrewer)
+
 
 tree_data <- read_csv("tree_monitoring.csv")
 
@@ -37,11 +39,63 @@ sach_polygon2 <- st_read(dsn = ".", layer = "ref_area_polygon")
 ```
 
 
+```{r}
+# top 5 fastest growing species
+
+tree_data$Height[is.na(tree_data$Height)] <- 0
 
 
+top5_fastest <- tree_data %>% 
+  filter( Year == 2020) %>%
+  group_by(Species) %>% 
+  summarize(av_height = mean(Height)) %>% 
+  arrange( -av_height) %>% 
+  head(10) 
 
 
+top5_fastest$Species <- factor(top5_fastest$Species, levels = top5_fastest$Species)
+  
+graph_top5_fastest <- ggplot(top5_fastest, aes(x = Species, y = av_height)) + geom_bar(aes(fill=Species), stat="identity") +
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0)) +
+  xlab("Species") +
+  ylab("Average Height (m)") +
+  ggtitle("Top 5 Fastest Growing Species") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(legend.position="none")
+
+graph_top5_fastest
+
+```
+
+```{r}
+# top 5 slowest growing species
+
+tree_data$Height[is.na(tree_data$Height)] <- 0
 
 
+top5_slowest <- tree_data %>% 
+  filter( Year == 2020) %>%
+  group_by(Species) %>% 
+  summarize(av_height = mean(Height)) %>% 
+  arrange( av_height) %>% 
+  head(10) 
+
+
+top5_slowest$Species <- factor(top5_slowest$Species, levels = top5_slowest$Species)
+  
+graph_top5_slowest <- ggplot(top5_slowest, aes(x = Species, y = av_height)) + geom_bar(aes(fill=Species), stat="identity") +
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0)) +
+  xlab("Species") +
+  ylab("Average Height (m)") +
+  ggtitle("Top 5 Slowest Growing Species") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(legend.position="none")
+
+graph_top5_slowest
+
+
+```
 
 

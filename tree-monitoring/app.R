@@ -30,8 +30,11 @@ ui <- fluidPage(
         # Show 4 tabs for: reforestation map, species composition, growth, and mortalities
         mainPanel(
             tabsetPanel(type = "tabs",
-                              tabPanel("Map", leafletOutput("mymap",height = 500)),
-                              tabPanel("Species", 
+                              tabPanel("Map", 
+                                       p("Note: click on individual trees to display info"),
+                                       leafletOutput("mymap",height = 500)),
+                              tabPanel("Species",
+                                       p("Note: hover over on chart to display tree number"),
                                        br(),
                                        plotlyOutput("compositionPlot")),
                               tabPanel("Growth",
@@ -62,8 +65,8 @@ server <- function(input, output) {
     output$mymap <- renderLeaflet({
         
         # Filter by year and arrange data
-        tree_data_arranged = tree_data %>% 
-            filter( Year == input$year) %>% 
+        tree_data_arranged <- tree_data %>% 
+            filter(Year == input$year) %>% 
             arrange(-Height) # arrange so that dead plants are last and red color shows over green
         
         # Create tree location map
@@ -78,7 +81,8 @@ server <- function(input, output) {
                        stroke = TRUE, fillOpacity = 0.8,
                        popup = paste("<strong>Tree ID</strong>:", tree_data_arranged$ID, "<br>",
                                      "<strong>Species:</strong>", tree_data_arranged$Species, "<br>",
-                                     "<strong>Height:</strong>", tree_data_arranged$Height, " m" ))
+                                     "<strong>Height:</strong>", tree_data_arranged$Height, " m" )) %>% 
+            addLegend(pal = pal, values = ~Alive_or_Dead, opacity = 1, title = paste("Tree Survival", input$year))
         
     })
     
@@ -86,14 +90,14 @@ server <- function(input, output) {
     # Generate species composition output
     output$compositionPlot <- renderPlotly({
         
-        # Filter tree data by year output
-        tree_data_by_year <- tree_data %>% 
-            filter(Year == input$year) %>% 
+        # Count trees by species
+        tree_data_count <- tree_data %>% 
+            filter(Year == input$year) %>%  
             group_by(Species) %>% 
             count(Species)
         
         # Create pie chart
-        plot_ly(tree_data_by_year, labels = ~Species, values = ~n, type = 'pie', textposition = 'inside',
+        plot_ly(tree_data_count, labels = ~Species, values = ~n, type = 'pie', textposition = 'inside',
                 textinfo = 'label+percent',
                 hoverinfo = 'text',
                 text = ~paste( n, ' trees'),
@@ -110,11 +114,53 @@ server <- function(input, output) {
     # Generate fastest growth output
     output$fastestPlot <- renderPlot({
         
+        tree_data$Height[is.na(tree_data$Height)] <- 0
+        
+        
+        top5_fastest <- tree_data %>% 
+            filter( Year == input$year) %>%
+            group_by(Species) %>% 
+            summarize(av_height = mean(Height)) %>% 
+            arrange( -av_height) %>% 
+            head(10) 
+        
+        
+        top5_fastest$Species <- factor(top5_fastest$Species, levels = top5_fastest$Species)
+        
+        ggplot(top5_fastest, aes(x = Species, y = av_height)) + geom_bar(aes(fill="blue"), stat="identity") +
+            theme_classic() +
+            scale_y_continuous(expand = c(0,0)) +
+            xlab("Species") +
+            ylab("Average Height (m)") +
+            ggtitle("Top 5 Fastest Growing Species") +
+            theme(plot.title = element_text(hjust = 0.5)) +
+            theme(legend.position="none")
     })
     
     # Generate slowest growth output
     output$slowestPlot <- renderPlot({
         
+        tree_data$Height[is.na(tree_data$Height)] <- 0
+        
+        
+        top5_slowest <- tree_data %>% 
+            filter( Year == input$year) %>%
+            group_by(Species) %>% 
+            summarize(av_height = mean(Height)) %>% 
+            arrange( av_height) %>% 
+            head(10) 
+        
+        
+        top5_slowest$Species <- factor(top5_slowest$Species, levels = top5_slowest$Species)
+        
+        ggplot(top5_slowest, aes(x = Species, y = av_height)) + geom_bar(aes(fill="green"), stat="identity") +
+            theme_classic() +
+            scale_y_continuous(expand = c(0,0)) +
+            xlab("Species") +
+            ylab("Average Height (m)") +
+            ggtitle("Top 5 Slowest Growing Species") +
+            theme(plot.title = element_text(hjust = 0.5)) +
+            theme(legend.position="none")
     })
     
     
@@ -131,12 +177,14 @@ server <- function(input, output) {
         
         # Create graph
         ggplot(mortalities_by_year, aes( x = Cause_of_death, y = n)) +
-            geom_col() +
+            geom_col(aes(fill=Cause_of_death)) +
             xlab("Cause of Death") +
             ylab("Number of Dead Plants") +
             theme_classic() +
-            ggtitle(paste("Causes of Plant Mortality", input$year))+
-            theme(plot.title = element_text(hjust = 0.5))
+            ggtitle(paste("Causes of Plant Mortality", input$year)) +
+            theme(plot.title = element_text(hjust = 0.5)) +
+            scale_y_continuous(expand = c(0,0)) +
+            theme(legend.position="none")
         
     })
 }
