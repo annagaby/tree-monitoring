@@ -127,7 +127,8 @@ server <- function(input, output) {
         
         top5_fastest$Species <- factor(top5_fastest$Species, levels = top5_fastest$Species)
         
-        ggplot(top5_fastest, aes(x = Species, y = av_height)) + geom_bar(aes(fill="blue"), stat="identity") +
+        ggplot(top5_fastest, aes(x = Species, y = av_height)) + 
+            geom_bar(width = 0.5, fill="gold2", stat = "identity") +
             theme_classic() +
             scale_y_continuous(expand = c(0,0)) +
             xlab("Species") +
@@ -153,7 +154,8 @@ server <- function(input, output) {
         
         top5_slowest$Species <- factor(top5_slowest$Species, levels = top5_slowest$Species)
         
-        ggplot(top5_slowest, aes(x = Species, y = av_height)) + geom_bar(aes(fill="green"), stat="identity") +
+        ggplot(top5_slowest, aes(x = Species, y = av_height)) + 
+            geom_bar(width = 0.5, fill="darkturquoise", stat = "identity") +
             theme_classic() +
             scale_y_continuous(expand = c(0,0)) +
             xlab("Species") +
