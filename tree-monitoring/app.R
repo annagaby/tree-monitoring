@@ -30,11 +30,13 @@ ui <- fluidPage(
         # Show 4 tabs for: reforestation map, species composition, growth, and mortalities
         mainPanel(
             tabsetPanel(type = "tabs",
-                              tabPanel("Map", 
-                                       p("Note: click on individual trees to display info"),
+                              tabPanel("Map",
+                                       br(),
+                                       tags$div(class="alert alert-dismissible alert-success", "Note: Click on individual trees to display info!"),
                                        leafletOutput("mymap",height = 500)),
                               tabPanel("Species",
-                                       p("Note: hover over on chart to display tree number"),
+                                       br(),
+                                       tags$div(class="alert alert-dismissible alert-success","Note: Hover on chart to display tree number!"),
                                        br(),
                                        plotlyOutput("compositionPlot")),
                               tabPanel("Growth",
@@ -71,24 +73,33 @@ server <- function(input, output) {
             arrange(-Height) # arrange so that dead plants are last and red color shows over green
         
         # Create tree location map
-        pal <- colorFactor(c("chartreuse4", "firebrick1"), tree_data_arranged$Alive_or_Dead) 
         
+        # Palette for legend
+        pal <- colorFactor(c("darkolivegreen4", "brown2"), tree_data_arranged$Alive_or_Dead) 
+        
+        # Tree icons
+        icons <- awesomeIcons(
+            icon = 'fa-tree',
+            iconColor = 'black',
+            library = 'fa',
+            markerColor = ifelse( tree_data$Alive_or_Dead == "Dead", "red", "green")
+        )
+       
+        # Map
         leaflet(data = tree_data_arranged) %>%
             addTiles() %>% 
             addPolygons(data = sach_polygon,
                         color = "forestgreen",
                         weight = 1,
                         fillColor = "forestgreen") %>% 
-            addCircles(data = tree_data_arranged,
+            addAwesomeMarkers(data = tree_data_arranged,
                        lng = ~Longitude,
                        lat = ~Latitude,
-                       weight = 3, radius=2.5, 
-                       color= ~pal(Alive_or_Dead),
-                       stroke = TRUE, fillOpacity = 0.8,
+                       icon = icons,
                        popup = paste("<strong>Tree ID</strong>:", tree_data_arranged$ID, "<br>",
                                      "<strong>Species:</strong>", tree_data_arranged$Species, "<br>",
-                                     "<strong>Height:</strong>", tree_data_arranged$Height, " m" )) %>% 
-            addLegend(pal = pal, values = ~Alive_or_Dead, opacity = 1, title = paste("Tree Survival", input$year)) %>% 
+                                     "<strong>Height:</strong>", tree_data_arranged$Height, " m" )) %>%
+            addLegend(pal = pal, values = ~Alive_or_Dead, opacity = 1, title = paste("Tree Survival", input$year)) %>%
             addMiniMap(zoomLevelOffset = -8) %>% 
             addScaleBar(position = "bottomleft")
         

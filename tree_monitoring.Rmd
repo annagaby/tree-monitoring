@@ -20,58 +20,55 @@ library(dplyr)
 library(RColorBrewer)
 
 
-tree_data <- read_csv("tree_monitoring.csv")
+tree_data <- read_csv("tree_monitoring.csv") %>% 
+  filter(Year == 2020)
 
 ```
 
 
 ```{r}
-# Pie chart with plotly
 
-# More info in https://plot.ly/r/pie-charts/
-# Note: find how to animate it
+        # Create tree location map
+  
 
-```
+icons <- awesomeIcons(
+  icon = 'fa-tree',
+  iconColor = 'black',
+  library = 'fa',
+  markerColor = ifelse( tree_data$Alive_or_Dead == "Dead", "red", "green")
+)
 
-```{r}
-sach_polygon <- st_read(dsn = ".", layer = "ref_area") 
 
-```
-
-```{r}
-pal <- colorFactor(c("green", "red"), tree_data$Alive_or_Dead) 
-        
-        leaflet(data = tree_data)%>%
-            addTiles() %>% 
-            addCircles(lng = ~Longitude,
-                       lat = ~Latitude,
-                       weight = 3, radius=2.5, 
-                       color= ~pal(Alive_or_Dead),
-                       stroke = TRUE, fillOpacity = 0.8,
-                       popup = paste("<strong>Tree ID</strong>:", tree_data$ID, "<br>",
-                                     "<strong>Species:</strong>", tree_data$Species, "<br>",
-                                     "<strong>Height:</strong>", tree_data$Height, " m" )) %>%
-          addPolygons(data = sach_polygon) %>% 
-            addLegend(pal = pal, values = ~Alive_or_Dead, opacity = 1, title = "Tree Survival") %>% 
-            addMiniMap()
-```
-
-```{r}
-pal <- colorFactor(c("green", "red"), tree_data$Alive_or_Dead) 
-        
         leaflet(data = tree_data) %>%
-          addTiles() %>% 
-          addPolygons(data = sach_polygon) %>% 
-            addCircles(data = tree_data,
+            addTiles() %>% 
+            addPolygons(data = sach_polygon,
+                        color = "forestgreen",
+                        weight = 1,
+                        fillColor = "forestgreen") %>% 
+            addAwesomeMarkers(data = tree_data,
                        lng = ~Longitude,
                        lat = ~Latitude,
-                       weight = 3, radius=2.5, 
-                       color= ~pal(Alive_or_Dead),
-                       stroke = TRUE, fillOpacity = 0.8,
+                       icon = icons,
                        popup = paste("<strong>Tree ID</strong>:", tree_data$ID, "<br>",
                                      "<strong>Species:</strong>", tree_data$Species, "<br>",
                                      "<strong>Height:</strong>", tree_data$Height, " m" )) %>% 
-            addLegend(pal = pal, values = ~Alive_or_Dead, opacity = 1, title = "Tree Survival") %>% 
-            addMiniMap()
+            addMiniMap(zoomLevelOffset = -8) %>% 
+            addScaleBar(position = "bottomleft")
+
+
+
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
 
