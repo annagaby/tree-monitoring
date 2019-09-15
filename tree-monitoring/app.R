@@ -7,6 +7,7 @@ library(leaflet)
 library(sf)
 library(lubridate)
 library(plotly)
+library(RColorBrewer)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -14,7 +15,8 @@ ui <- fluidPage(
     theme = shinytheme("flatly"),
 
     # Application title
-    titlePanel(tags$img(src = "https://images.squarespace-cdn.com/content/5be1911ecc8fed6b42ebe87e/1546689900224-9JJK8UZ1EEEXGBI7NS3P/logo+yakum_for+dark+BG.png?format=1500w&content-type=image%2Fpng", height = 80, "   Reforestation Project - Sacha Waysa Community")),
+    titlePanel(title = tags$img(src = "https://images.squarespace-cdn.com/content/5be1911ecc8fed6b42ebe87e/1546689900224-9JJK8UZ1EEEXGBI7NS3P/logo+yakum_for+dark+BG.png?format=1500w&content-type=image%2Fpng", height = 80, "   Reforestation Project - Sacha Waysa Community"),
+               windowTitle = "Reforestation Project - Sacha Waysa Community"),
 
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
@@ -53,6 +55,7 @@ ui <- fluidPage(
     ),
     
     # Create footer
+    br(),
     tags$footer("Developed by Anna Calle <annagcalle@bren.ucsb.edu> in programming language R version 3.6.1 (2019-07-05). Code on", tags$a(href ="https://github.com/annagaby/tree-monitoring", target="_blank", "GitHub."))
     
 )
@@ -61,11 +64,15 @@ ui <- fluidPage(
 server <- function(input, output) {
     
     # Read files
-    tree_data <- read_csv("tree_monitoring.csv")
-    sach_polygon <- st_read(dsn = ".", layer = "ref_area") 
+    tree_data <- read_csv("tree_mock_data.csv")
+    sach_polygon <- st_read(dsn = ".", layer = "ref_area")
+    
+    # Change NA's in Height column to zeros
+    tree_data$Height[is.na(tree_data$Height)] <-  0
     
     # Generate map ouput
     output$mymap <- renderLeaflet({
+        
         
         # Filter by year and arrange data
         tree_data_arranged <- tree_data %>% 
@@ -82,7 +89,7 @@ server <- function(input, output) {
             icon = 'fa-tree',
             iconColor = 'black',
             library = 'fa',
-            markerColor = ifelse( tree_data$Alive_or_Dead == "Dead", "red", "green")
+            markerColor = ifelse( tree_data_arranged$Alive_or_Dead == "Dead", "red", "green")
         )
        
         # Map
@@ -116,13 +123,18 @@ server <- function(input, output) {
             count(Species)
         
         # Create pie chart
-        plot_ly(tree_data_count, labels = ~Species, values = ~n, type = 'pie', textposition = 'inside',
+        plot_ly(tree_data_count,
+                labels = ~Species,
+                values = ~n, type = 'pie',
+                textposition = 'inside',
                 textinfo = 'label+percent',
+                insidetextfont = list(color = 'black'),
                 hoverinfo = 'text',
                 text = ~paste( n, ' trees'),
                 showlegend = FALSE,
-                marker = list(colors = colors,
-                              line = list(color = '#FFFFFF', width = 1))) %>%
+                marker = list(colors = brewer.pal(n = 6, name = "Set2"),
+                              line = list(color = '#FFFFFF',
+                                          width = 1))) %>%
             layout(title = paste("Species Composition", input$year),
                    xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                    yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
@@ -141,18 +153,18 @@ server <- function(input, output) {
             group_by(Species) %>% 
             summarize(av_height = mean(Height)) %>% 
             arrange( -av_height) %>% 
-            head(10) 
+            head(5) 
         
         
         top5_fastest$Species <- factor(top5_fastest$Species, levels = top5_fastest$Species)
         
         ggplot(top5_fastest, aes(x = Species, y = av_height)) + 
-            geom_bar(width = 0.5, fill="gold2", stat = "identity") +
+            geom_bar(width = 0.75, fill="gold2", stat = "identity") +
             theme_classic() +
             scale_y_continuous(expand = c(0,0)) +
             xlab("Species") +
             ylab("Average Height (m)") +
-            ggtitle("Top 5 Fastest Growing Species") +
+            ggtitle(paste("Top 5 Fastest Growing Species", input$year)) +
             theme(plot.title = element_text(hjust = 0.5)) +
             theme(legend.position="none")
     })
@@ -168,18 +180,18 @@ server <- function(input, output) {
             group_by(Species) %>% 
             summarize(av_height = mean(Height)) %>% 
             arrange( av_height) %>% 
-            head(10) 
+            head(5) 
         
         
         top5_slowest$Species <- factor(top5_slowest$Species, levels = top5_slowest$Species)
         
         ggplot(top5_slowest, aes(x = Species, y = av_height)) + 
-            geom_bar(width = 0.5, fill="darkturquoise", stat = "identity") +
+            geom_bar(width = 0.75, fill="darkturquoise", stat = "identity") +
             theme_classic() +
             scale_y_continuous(expand = c(0,0)) +
             xlab("Species") +
             ylab("Average Height (m)") +
-            ggtitle("Top 5 Slowest Growing Species") +
+            ggtitle(paste("Top 5 Slowest Growing Species", input$year)) +
             theme(plot.title = element_text(hjust = 0.5)) +
             theme(legend.position="none")
     })

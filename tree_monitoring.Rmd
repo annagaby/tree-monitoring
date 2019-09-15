@@ -20,8 +20,8 @@ library(dplyr)
 library(RColorBrewer)
 
 
-tree_data <- read_csv("tree_monitoring.csv") %>% 
-  filter(Year == 2020)
+tree_data <- read_csv("tree_mock_data.csv") 
+tree_data$Height[is.na(tree_data$Height)] <-  0
 
 ```
 
