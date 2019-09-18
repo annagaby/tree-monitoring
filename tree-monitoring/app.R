@@ -32,19 +32,19 @@ ui <- fluidPage(
         # Show 4 tabs for: reforestation map, species composition, growth, and mortalities
         mainPanel(
             tabsetPanel(type = "tabs",
-                              tabPanel("Map",
+                              tabPanel(div(icon("map-pin"),"Map"),
                                        br(),
                                        tags$div(class="alert alert-dismissible alert-success", "Note: Click on individual trees to display info!"),
                                        leafletOutput("mymap",height = 500)),
-                              tabPanel("Species",
+                              tabPanel(div(icon("chart-pie"),"Species"),
                                        br(),
                                        tags$div(class="alert alert-dismissible alert-success","Note: Hover on chart to display tree number!"),
                                        br(),
                                        plotlyOutput("compositionPlot")),
-                              tabPanel("Growth",
+                              tabPanel(div(icon("chart-bar"),"Growth"),
                                  plotOutput("fastestPlot"),
                                  plotOutput("slowestPlot")),
-                              tabPanel("Mortalities",
+                              tabPanel(div(icon("chart-line"),"Mortalities"),
                                        br(),
                                        plotOutput("mortalityPlot"))
             
