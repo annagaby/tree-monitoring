@@ -9,54 +9,86 @@ library(lubridate)
 library(plotly)
 library(RColorBrewer)
 
+
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-    # theme for the app
+    # Theme for the app
     theme = shinytheme("flatly"),
 
     # Application title
     titlePanel(title = tags$img(src = "https://images.squarespace-cdn.com/content/5be1911ecc8fed6b42ebe87e/1546689900224-9JJK8UZ1EEEXGBI7NS3P/logo+yakum_for+dark+BG.png?format=1500w&content-type=image%2Fpng", height = 80, "   Reforestation Project - Sacha Waysa Community"),
                windowTitle = "Reforestation Project - Sacha Waysa Community"),
-
-    # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        sidebarPanel(
-            selectInput("year", 
-                        "Select year:",
-                        choices = c( "2019", "2020", "2021", "2022"),
-                        selected = "2019"),
-            tags$hr(style="border-color: gray;"),
-            p("Trees were planted in 2019 and monitored on a yearly basis until 2022. ")   
-        ),
-
-        # Show 4 tabs for: reforestation map, species composition, growth, and mortalities
-        mainPanel(
-            tabsetPanel(type = "tabs",
-                              tabPanel(div(icon("map-pin"),"Map"),
-                                       br(),
-                                       tags$div(class="alert alert-dismissible alert-success", "Note: Click on individual trees to display info!"),
-                                       leafletOutput("mymap",height = 500)),
-                              tabPanel(div(icon("chart-pie"),"Species"),
-                                       br(),
-                                       tags$div(class="alert alert-dismissible alert-success","Note: Hover on chart to display tree number!"),
-                                       br(),
-                                       plotlyOutput("compositionPlot")),
-                              tabPanel(div(icon("chart-bar"),"Growth"),
-                                 plotOutput("fastestPlot"),
-                                 plotOutput("slowestPlot")),
-                              tabPanel(div(icon("chart-line"),"Mortalities"),
-                                       br(),
-                                       plotOutput("mortalityPlot"))
-            
-            
-           
-           )
-        )
-    ),
     
+    # Navbar
+    navbarPage("My application",
+               
+               # First tab
+               tabPanel(div(icon("info-circle"),"About")),
+               
+               # Second tab
+               tabPanel(div(icon("map-pin"),"Map"),
+                        tags$div(class="alert alert-dismissible alert-success", "Note: Click on individual trees to display info!"),
+                        leafletOutput("mymap",height = 500),
+                        # Fluid row for inputs
+                        fluidRow(
+                            column(6,
+                                   h4("Title"),
+                                   selectInput("year_map",
+                                               "Select year:",
+                                               choices = c("2019","2020","2021","2022"))),
+                            column(6,
+                                   radioButtons("vis",
+                                                "Visualize trees by:",
+                                                choices = c("Survival", "Species"),
+                                                selected = "Survival"))
+                        )
+                        ),
+               
+               # Third tab
+               tabPanel(div(icon("chart-pie"),"Species"),
+                        tags$div(class="alert alert-dismissible alert-success","Note: Hover on chart to display tree number!"),
+                        plotlyOutput("compositionPlot"),
+                        # Fluid row for inputs
+                        fluidRow(
+                            column(6,
+                                   h4("Title"),
+                                   selectInput("year_pie",
+                                               "Select year:",
+                                               choices = c("2019","2020","2021","2022"),
+                                               selected = "2019")))
+                        ),
+               
+               # Fourth tab
+               tabPanel(div(icon("chart-bar"),"Growth"),
+                        plotOutput("fastestPlot"),
+                        plotOutput("slowestPlot"),
+               # Fluid row for inputs
+               fluidRow(
+                   column(6,
+                          h4("Title"),
+                          selectInput("year_growth",
+                                      "Select year:",
+                                      choices = c("2019","2020","2021","2022"),
+                                      selected = "2019")))),
+               
+               
+               # Fifth tab
+               tabPanel(div(icon("chart-line"),"Mortalities"),
+                        br(),
+                        plotOutput("mortalityPlot"),
+                        # Fluid row for inputs
+                        fluidRow(
+                            column(6,
+                                   h4("Title"),
+                                   selectInput("year_mort",
+                                               "Select year:",
+                                               choices = c("2019","2020","2021","2022"),
+                                               selected = "2019"))))
+    ),
+            
     # Create footer
     br(),
-    tags$footer("Developed by Anna Calle <annagcalle@bren.ucsb.edu> in programming language R version 3.6.1 (2019-07-05). Code on", tags$a(href ="https://github.com/annagaby/tree-monitoring", target="_blank", "GitHub."))
+    tags$footer("Developed by Anna Calle <annagcalle@bren.ucsb.edu> in programming language R version 3.6.1 (2019-07-05). Code on", tags$a(href ="https://github.com/annagaby/tree-monitoring", target="_blank", icon("github"),"GitHub."))
     
 )
 
@@ -76,24 +108,49 @@ server <- function(input, output) {
         
         # Filter by year and arrange data
         tree_data_arranged <- tree_data %>% 
-            filter(Year == input$year) %>% 
-            arrange(-Height) # arrange so that dead plants are last and red color shows over green
+            filter(Year == input$year_map) %>% 
+            arrange(-Height)  # arrange so that dead plants are last and red color shows over green
+            
         
         # Create tree location map
         
-        # Palette for legend
-        pal <- colorFactor(c("darkolivegreen4", "brown2"), tree_data_arranged$Alive_or_Dead) 
+        titles <-  if(input$vis == "Survival"){ paste("Tree Survival", input$year_map)
+        } else {
+            paste("Species Composition", input$year_map)
+        }
         
-        # Tree icons
-        icons <- awesomeIcons(
-            icon = 'fa-tree',
-            iconColor = 'black',
-            library = 'fa',
-            markerColor = ifelse( tree_data_arranged$Alive_or_Dead == "Dead", "red", "green")
-        )
-       
+        # Palette for legend
+        pal <- if (input$vis == "Survival") {colorFactor(c("darkolivegreen4", "brown2"), tree_data_arranged$Alive_or_Dead)
+        } else { colorFactor(c("red", "purple","blue", "white", "orange","green"), tree_data_arranged$Species) }
+        
+        # values
+        values <- if (input$vis == "Species") {~Species
+             } else { ~Alive_or_Dead}
+        
+        # Icons with different colors depending on vis input selected
+        
+        icons <- if (input$vis == "Species") {
+            # Icons for species input
+            awesomeIcons(
+                icon = 'fa-tree',
+                iconColor = 'black',
+                library = 'fa',
+                markerColor = ifelse( tree_data_arranged$Species == "Chonta", "red",
+                                      ifelse(tree_data_arranged$Species == "Ungurahua", "purple",
+                                             ifelse(tree_data_arranged$Species == "Morete", "blue",
+                                                    ifelse(tree_data_arranged$Species == "Guaba", "white",
+                                                           ifelse(tree_data_arranged$Species == "Caoba", "orange", "green")))))
+            )} else {
+            # Icons for survival input
+        awesomeIcons(
+                icon = 'fa-tree',
+                iconColor = 'black',
+                library = 'fa',
+                markerColor = ifelse( tree_data_arranged$Alive_or_Dead == "Dead", "red", "green")
+            )}
+        
         # Map
-        leaflet(data = tree_data_arranged) %>%
+        map <- leaflet(data = tree_data_arranged) %>%
             addTiles() %>% 
             addPolygons(data = sach_polygon,
                         color = "forestgreen",
@@ -106,19 +163,18 @@ server <- function(input, output) {
                        popup = paste("<strong>Tree ID</strong>:", tree_data_arranged$ID, "<br>",
                                      "<strong>Species:</strong>", tree_data_arranged$Species, "<br>",
                                      "<strong>Height:</strong>", tree_data_arranged$Height, " m" )) %>%
-            addLegend(pal = pal, values = ~Alive_or_Dead, opacity = 1, title = paste("Tree Survival", input$year)) %>%
+            addLegend(pal = pal, values = values, opacity = 1, title = titles) %>% 
             addMiniMap(zoomLevelOffset = -8) %>% 
             addScaleBar(position = "bottomleft")
         
     })
-    
     
     # Generate species composition output
     output$compositionPlot <- renderPlotly({
         
         # Count trees by species
         tree_data_count <- tree_data %>% 
-            filter(Year == input$year) %>%  
+            filter(Year == input$year_pie) %>%  
             group_by(Species) %>% 
             count(Species)
         
@@ -135,7 +191,7 @@ server <- function(input, output) {
                 marker = list(colors = brewer.pal(n = 6, name = "Set2"),
                               line = list(color = '#FFFFFF',
                                           width = 1))) %>%
-            layout(title = paste("Species Composition", input$year),
+            layout(title = paste("Species Composition", input$year_pie),
                    xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                    yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
         
@@ -149,7 +205,7 @@ server <- function(input, output) {
         
         
         top5_fastest <- tree_data %>% 
-            filter( Year == input$year) %>%
+            filter( Year == input$year_growth) %>%
             group_by(Species) %>% 
             summarize(av_height = mean(Height)) %>% 
             arrange( -av_height) %>% 
@@ -164,7 +220,7 @@ server <- function(input, output) {
             scale_y_continuous(expand = c(0,0)) +
             xlab("Species") +
             ylab("Average Height (m)") +
-            ggtitle(paste("Top 5 Fastest Growing Species", input$year)) +
+            ggtitle(paste("Top 5 Fastest Growing Species", input$year_growth)) +
             theme(plot.title = element_text(hjust = 0.5)) +
             theme(legend.position="none")
     })
@@ -176,7 +232,7 @@ server <- function(input, output) {
         
         
         top5_slowest <- tree_data %>% 
-            filter( Year == input$year) %>%
+            filter( Year == input$year_growth) %>%
             group_by(Species) %>% 
             summarize(av_height = mean(Height)) %>% 
             arrange( av_height) %>% 
@@ -191,7 +247,7 @@ server <- function(input, output) {
             scale_y_continuous(expand = c(0,0)) +
             xlab("Species") +
             ylab("Average Height (m)") +
-            ggtitle(paste("Top 5 Slowest Growing Species", input$year)) +
+            ggtitle(paste("Top 5 Slowest Growing Species", input$year_growth)) +
             theme(plot.title = element_text(hjust = 0.5)) +
             theme(legend.position="none")
     })
@@ -204,7 +260,7 @@ server <- function(input, output) {
         mortalities_by_year <- tree_data %>% 
             select(Year, Cause_of_death) %>% 
             filter( Cause_of_death != "NA") %>%
-            filter( Year == input$year) %>% 
+            filter( Year == input$year_mort) %>% 
             count(Cause_of_death, Year) %>%
             arrange(-n)
         
@@ -214,7 +270,7 @@ server <- function(input, output) {
             xlab("Cause of Death") +
             ylab("Number of Dead Plants") +
             theme_classic() +
-            ggtitle(paste("Causes of Plant Mortality", input$year)) +
+            ggtitle(paste("Causes of Plant Mortality", input$year_mort)) +
             theme(plot.title = element_text(hjust = 0.5)) +
             scale_y_continuous(expand = c(0,0)) +
             theme(legend.position="none")

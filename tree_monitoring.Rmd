@@ -20,44 +20,39 @@ library(dplyr)
 library(RColorBrewer)
 
 
-tree_data <- read_csv("tree_mock_data.csv") 
-tree_data$Height[is.na(tree_data$Height)] <-  0
+tree_data <- read_csv("tree_mock_data.csv") %>% 
+  mutate (type = ifelse( Species == "Chonta", "speciesIcons", "survivalIcons"))
 
 ```
-
-
 ```{r}
-
-        # Create tree location map
-  
-
-icons <- awesomeIcons(
-  icon = 'fa-tree',
-  iconColor = 'black',
-  library = 'fa',
-  markerColor = ifelse( tree_data$Alive_or_Dead == "Dead", "red", "green")
+# Make a list of icons. We'll index into it based on name.
+oceanIcons <- iconList(
+  ship = makeIcon("ferry-18.png", "ferry-18@2x.png", 18, 18),
+  pirate = makeIcon("danger-24.png", "danger-24@2x.png", 24, 24)
 )
 
+# Some fake data
+df <- sp::SpatialPointsDataFrame(
+  cbind(
+    (runif(20) - .5) * 10 - 90.620130,  # lng
+    (runif(20) - .5) * 3.8 + 25.638077  # lat
+  ),
+  data.frame(type = factor(
+    ifelse(runif(20) > 0.75, "pirate", "ship"),
+    c("ship", "pirate")
+  ))
+)
 
-        leaflet(data = tree_data) %>%
-            addTiles() %>% 
-            addPolygons(data = sach_polygon,
-                        color = "forestgreen",
-                        weight = 1,
-                        fillColor = "forestgreen") %>% 
-            addAwesomeMarkers(data = tree_data,
-                       lng = ~Longitude,
-                       lat = ~Latitude,
-                       icon = icons,
-                       popup = paste("<strong>Tree ID</strong>:", tree_data$ID, "<br>",
-                                     "<strong>Species:</strong>", tree_data$Species, "<br>",
-                                     "<strong>Height:</strong>", tree_data$Height, " m" )) %>% 
-            addMiniMap(zoomLevelOffset = -8) %>% 
-            addScaleBar(position = "bottomleft")
+leaflet(df) %>% addTiles() %>%
+  # Select from oceanIcons based on df$type
+  addMarkers(icon = ~oceanIcons[type])
 
 
 
 ```
+
+
+
 
 
 
