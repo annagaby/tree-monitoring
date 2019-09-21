@@ -20,25 +20,32 @@ ui <- fluidPage(
                windowTitle = "Reforestation Project - Sacha Waysa Community"),
     
     # Navbar
-    navbarPage("My application",
+    navbarPage("Tree Monitoring App",
                
                # First tab
-               tabPanel(div(icon("info-circle"),"About")),
+               tabPanel(div(icon("info-circle"),"About"),
+                        h1("The App"),
+                        p("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."),
+                        h1("The Community: Sacha Waysa"),
+                        p("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."),
+                        h1("Yakum"),
+                        p("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+                          a(href="https://yakum.org", "Yakum's website.", target="_blank"))),
                
                # Second tab
                tabPanel(div(icon("map-pin"),"Map"),
-                        tags$div(class="alert alert-dismissible alert-success", "Note: Click on individual trees to display info!"),
+                        tags$div(class="alert alert-dismissible alert-success",
+                                 "Note: Click on individual trees to display info!"),
                         leafletOutput("mymap",height = 500),
                         # Fluid row for inputs
                         fluidRow(
                             column(6,
-                                   h4("Title"),
                                    selectInput("year_map",
                                                "Select year:",
                                                choices = c("2019","2020","2021","2022"))),
                             column(6,
                                    radioButtons("vis",
-                                                "Visualize trees by:",
+                                                "Color tree marker by:",
                                                 choices = c("Survival", "Species"),
                                                 selected = "Survival"))
                         )
@@ -51,7 +58,6 @@ ui <- fluidPage(
                         # Fluid row for inputs
                         fluidRow(
                             column(6,
-                                   h4("Title"),
                                    selectInput("year_pie",
                                                "Select year:",
                                                choices = c("2019","2020","2021","2022"),
@@ -60,12 +66,16 @@ ui <- fluidPage(
                
                # Fourth tab
                tabPanel(div(icon("chart-bar"),"Growth"),
-                        plotOutput("fastestPlot"),
-                        plotOutput("slowestPlot"),
+                        fluidRow(
+                            column(6,
+                                   plotOutput("fastestPlot")),
+                            column(6,
+                                   plotOutput("slowestPlot"))
+                        ),
+                        
                # Fluid row for inputs
                fluidRow(
                    column(6,
-                          h4("Title"),
                           selectInput("year_growth",
                                       "Select year:",
                                       choices = c("2019","2020","2021","2022"),
@@ -79,7 +89,6 @@ ui <- fluidPage(
                         # Fluid row for inputs
                         fluidRow(
                             column(6,
-                                   h4("Title"),
                                    selectInput("year_mort",
                                                "Select year:",
                                                choices = c("2019","2020","2021","2022"),

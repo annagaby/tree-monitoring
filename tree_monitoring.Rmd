@@ -18,38 +18,30 @@ library(sf)
 library(rgdal)
 library(dplyr)
 library(RColorBrewer)
+library(waffle)
 
 
-tree_data <- read_csv("tree_mock_data.csv") %>% 
-  mutate (type = ifelse( Species == "Chonta", "speciesIcons", "survivalIcons"))
+tree_data <- read_csv("tree_mock_data.csv")
 
 ```
+
+
+
 ```{r}
-# Make a list of icons. We'll index into it based on name.
-oceanIcons <- iconList(
-  ship = makeIcon("ferry-18.png", "ferry-18@2x.png", 18, 18),
-  pirate = makeIcon("danger-24.png", "danger-24@2x.png", 24, 24)
-)
 
-# Some fake data
-df <- sp::SpatialPointsDataFrame(
-  cbind(
-    (runif(20) - .5) * 10 - 90.620130,  # lng
-    (runif(20) - .5) * 3.8 + 25.638077  # lat
-  ),
-  data.frame(type = factor(
-    ifelse(runif(20) > 0.75, "pirate", "ship"),
-    c("ship", "pirate")
-  ))
-)
+# Waflle chart
 
-leaflet(df) %>% addTiles() %>%
-  # Select from oceanIcons based on df$type
-  addMarkers(icon = ~oceanIcons[type])
+var <- tree_data$Cause_of_death
+categ_table <- round(table(var) * ((nrows*nrows)/(length(var))))
+categ_table
 
+waffle <- waffle(categ_table , rows=3, title="Health records breaches as fraction of US Population", colors= 
+       xlab="One square == 10m ppl")
+waffle
 
 
 ```
+
 
 
 
