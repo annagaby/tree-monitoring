@@ -131,8 +131,8 @@ server <- function(input, output) {
         }
         
         # Palette for legend
-        pal <- if (input$vis == "Survival") {colorFactor(c("darkolivegreen4", "brown2"), tree_data_arranged$Alive_or_Dead)
-        } else { colorFactor(c("red", "purple","blue", "white", "orange","green"), tree_data_arranged$Species) }
+        pal <- if (input$vis == "Survival") {colorFactor(c("#7EAB46", "#CE3E35"), tree_data_arranged$Alive_or_Dead)
+        } else { colorFactor(c("#EA9631", "#CE3E35","#F5F9F2", "#7EAB46", "#3AA1D9","#C65EAA"), tree_data_arranged$Species) }
         
         # values
         values <- if (input$vis == "Species") {~Species
@@ -146,11 +146,11 @@ server <- function(input, output) {
                 icon = 'fa-tree',
                 iconColor = 'black',
                 library = 'fa',
-                markerColor = ifelse( tree_data_arranged$Species == "Chonta", "red",
-                                      ifelse(tree_data_arranged$Species == "Ungurahua", "purple",
-                                             ifelse(tree_data_arranged$Species == "Morete", "blue",
-                                                    ifelse(tree_data_arranged$Species == "Guaba", "white",
-                                                           ifelse(tree_data_arranged$Species == "Caoba", "orange", "green")))))
+                markerColor = ifelse( tree_data_arranged$Species == "Caoba", "orange",
+                                      ifelse(tree_data_arranged$Species == "Chonta", "red",
+                                             ifelse(tree_data_arranged$Species == "Guaba", "white",
+                                                    ifelse(tree_data_arranged$Species == "Jackfruit", "green",
+                                                           ifelse(tree_data_arranged$Species == "Morete", "blue", "purple")))))
             )} else {
             # Icons for survival input
         awesomeIcons(
