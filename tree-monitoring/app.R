@@ -34,11 +34,13 @@ ui <- fluidPage(
                
                # Second tab
                tabPanel(div(icon("map-pin"),"Map"),
-                        tags$div(class="alert alert-dismissible alert-success",
+                        div(class="alert alert-dismissible alert-success",
                                  "Note: Click on individual trees to display info!"),
                         leafletOutput("mymap",height = 500),
+                        br(),
                         # Fluid row for inputs
-                        fluidRow(
+                        div(
+                             fluidRow(
                             column(6,
                                    selectInput("year_map",
                                                "Select year:",
@@ -49,19 +51,23 @@ ui <- fluidPage(
                                                 choices = c("Survival", "Species"),
                                                 selected = "Survival"))
                         )
+                        )
                         ),
                
                # Third tab
                tabPanel(div(icon("chart-pie"),"Species"),
                         tags$div(class="alert alert-dismissible alert-success","Note: Hover on chart to display tree number!"),
-                        plotlyOutput("compositionPlot"),
-                        # Fluid row for inputs
-                        fluidRow(
-                            column(6,
-                                   selectInput("year_pie",
-                                               "Select year:",
-                                               choices = c("2019","2020","2021","2022"),
-                                               selected = "2019")))
+                        sidebarLayout(
+                            sidebarPanel(
+                                selectInput("year_pie",
+                                            "Select year:",
+                                            choices = c("2019","2020","2021","2022"),
+                                            selected = "2019")
+                            ),
+                            mainPanel(
+                                plotlyOutput("compositionPlot")
+                            )
+                        )
                         ),
                
                # Fourth tab
@@ -74,26 +80,27 @@ ui <- fluidPage(
                         ),
                         
                # Fluid row for inputs
-               fluidRow(
+               div(
+                   fluidRow(
                    column(6,
                           selectInput("year_growth",
                                       "Select year:",
                                       choices = c("2019","2020","2021","2022"),
-                                      selected = "2019")))),
+                                      selected = "2019"))))),
                
                
                # Fifth tab
                tabPanel(div(icon("table"),"Mortalities"),
-                        br(),
-                        dataTableOutput("mortalityTable"),
                         # Fluid row for inputs
                         fluidRow(
                             column(6,
-                                   checkboxGroupInput("mort", label = h3("Group mortalities by"), 
+                                   checkboxGroupInput("mort", "Group mortalities by:", 
                                                       choices = list("Total" = 1,
                                                                      "Species" = 2,
                                                                      "Year" = 3),
-                                                      selected = 1))))
+                                                      selected = 1))),
+                        br(),
+                        dataTableOutput("mortalityTable"))
     ),
             
     # Create footer
@@ -296,6 +303,9 @@ server <- function(input, output) {
         
         # Change NA's to zeros
         final_table[is.na(final_table)] <- 0
+        
+        final_table <- final_table %>% 
+            mutate("Mortality Rate" = paste(final_table$"Mortality Rate" , "%"))
         
         final_table
     }, options= list(paging = FALSE, searching = FALSE,  pageLength = 6))
