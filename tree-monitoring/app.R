@@ -85,19 +85,21 @@ ui <- fluidPage(
                # Fifth tab
                tabPanel(div(icon("chart-line"),"Mortalities"),
                         br(),
-                        plotOutput("mortalityPlot"),
+                        dataTableOutput("mortalityTable"),
                         # Fluid row for inputs
                         fluidRow(
                             column(6,
-                                   selectInput("year_mort",
-                                               "Select year:",
-                                               choices = c("2019","2020","2021","2022"),
-                                               selected = "2019"))))
+                                   checkboxGroupInput("mort", label = h3("Group mortalities by"), 
+                                                      choices = list("Total" = 1,
+                                                                     "Species" = 2,
+                                                                     "Year" = 3),
+                                                      selected = 1))))
     ),
             
     # Create footer
     br(),
-    tags$footer("Developed by Anna Calle <annagcalle@bren.ucsb.edu> in programming language R version 3.6.1 (2019-07-05). Code on", tags$a(href ="https://github.com/annagaby/tree-monitoring", target="_blank", icon("github"),"GitHub."))
+    tags$footer("Developed by Anna Calle <annagcalle@bren.ucsb.edu> in programming language R version 3.6.1 (2019-07-05). Code on", tags$a(href ="https://github.com/annagaby/tree-monitoring", target="_blank", icon("github"),"GitHub.")),
+    br()
     
 )
 
@@ -108,8 +110,8 @@ server <- function(input, output) {
     tree_data <- read_csv("tree_mock_data.csv")
     sach_polygon <- st_read(dsn = ".", layer = "ref_area")
     
-    # Change NA's in Height column to zeros
-    tree_data$Height[is.na(tree_data$Height)] <-  0
+    # Change Height NA's to zeros
+    tree_data$Height[is.na(tree_data$Height)] <- 0
     
     # Generate map ouput
     output$mymap <- renderLeaflet({
@@ -263,28 +265,40 @@ server <- function(input, output) {
     
     
     # Generate mortalities output
-    output$mortalityPlot <- renderPlot({
+    output$mortalityTable <- renderDataTable({
         
-        # Filter mortalities by year
-        mortalities_by_year <- tree_data %>% 
-            select(Year, Cause_of_death) %>% 
-            filter( Cause_of_death != "NA") %>%
-            filter( Year == input$year_mort) %>% 
-            count(Cause_of_death, Year) %>%
-            arrange(-n)
+        table <- if (all(input$mort == c("1", "2","3"))){
+            tree_data %>%
+                count(Alive_or_Dead, Species, Year)
+        } else if (all(input$mort == c("2","3"))){
+            tree_data %>%
+                count(Alive_or_Dead, Species, Year)
+        } else if (all(input$mort == c("1","3"))){
+            tree_data %>%
+                count(Alive_or_Dead, Year)
+        } else if (all(input$mort == c("1","2"))){
+            tree_data %>%
+                count(Alive_or_Dead, Species)
+        } else if (input$mort == c("1")){
+           tree_data %>%
+               count(Alive_or_Dead)
+       } else if (input$mort == c("2")){
+           tree_data %>%
+               count(Alive_or_Dead, Species)
+       } else if (input$mort == c("3")){
+           tree_data %>%
+               count(Alive_or_Dead, Year)
+       } 
+       
+        final_table <- table %>% 
+            spread(Alive_or_Dead, n) %>% 
+            mutate("Mortality Rate" = round(Dead/(Alive + Dead)*100, digits = 2))
         
-        # Create graph
-        ggplot(mortalities_by_year, aes( x = Cause_of_death, y = n)) +
-            geom_col(aes(fill=Cause_of_death)) +
-            xlab("Cause of Death") +
-            ylab("Number of Dead Plants") +
-            theme_classic() +
-            ggtitle(paste("Causes of Plant Mortality", input$year_mort)) +
-            theme(plot.title = element_text(hjust = 0.5)) +
-            scale_y_continuous(expand = c(0,0)) +
-            theme(legend.position="none")
+        # Change NA's to zeros
+        final_table[is.na(final_table)] <- 0
         
-    })
+        final_table
+    }, options= list(paging = FALSE, searching = FALSE,  pageLength = 6))
 }
 
 # Run the application 

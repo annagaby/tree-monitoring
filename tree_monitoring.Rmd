@@ -22,6 +22,7 @@ library(waffle)
 
 
 tree_data <- read_csv("tree_mock_data.csv")
+ 
 
 ```
 
@@ -35,27 +36,10 @@ var <- tree_data$Cause_of_death
 categ_table <- round(table(var) * ((nrows*nrows)/(length(var))))
 categ_table
 
-waffle <- waffle(categ_table , rows=3, title="Health records breaches as fraction of US Population", colors= 
+waffle <- waffle(categ_table * 11.4, rows=10, title="Health records breaches as fraction of US Population",
        xlab="One square == 10m ppl")
 waffle
 
 
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
