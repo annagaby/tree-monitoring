@@ -83,7 +83,7 @@ ui <- fluidPage(
                
                
                # Fifth tab
-               tabPanel(div(icon("chart-line"),"Mortalities"),
+               tabPanel(div(icon("table"),"Mortalities"),
                         br(),
                         dataTableOutput("mortalityTable"),
                         # Fluid row for inputs
