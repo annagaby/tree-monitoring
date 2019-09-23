@@ -25,12 +25,12 @@ ui <- fluidPage(
                # First tab
                tabPanel(div(icon("info-circle"),"About"),
                         h1("The App"),
-                        p("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."),
+                        p("The purpose of this app is to create interactive and user-friendly visualizations from reforestation data. It was designed considering the monitoring protocol of a reforestation project in the community of Sacha Waysa, located in Napo, Ecuador. The project will begin planting trees in 2019 and  yearly growth measurements  will be conducted until 2022. For now, the app contains mock data that will be replaced with real field data once it becomes available."),
                         h1("The Community: Sacha Waysa"),
-                        p("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."),
+                        p("Sacha Waysa is a community committed to bringing back their ancestral practices through community tourism. Travelers visiting this community can enjoy traditional Kichwa food, dancing, handicrafts, and music, as well as take part in ancestral rituals, hikes to waterfalls, and more. By taking part in reforestation efforts, the community hopes to bring back their forest wildlife and ancestral plants."),
                         h1("Yakum"),
-                        p("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-                          a(href="https://yakum.org", "Yakum's website.", target="_blank"))),
+                        p("Yakum is a conservation organization empowering indigenous communities and mitigating climate change at the same time. They build nurseries, organize seed exchange events, conduct agroforestry workshops, and support reforestation initiatives. Learn more about their approach to avoid climate change by visiting their ",
+                          a(href="https://yakum.org", " website.", target="_blank"))),
                
                # Second tab
                tabPanel(div(icon("map-pin"),"Map"),
@@ -138,7 +138,8 @@ server <- function(input, output) {
         }
         
         # Palette for legend
-        pal <- if (input$vis == "Survival") {colorFactor(c("#7EAB46", "#CE3E35"), tree_data_arranged$Alive_or_Dead)
+        pal <- if (all(input$vis == "Survival" & input$year_map == "2019")) {colorFactor(c("#7EAB46"), tree_data_arranged$Alive_or_Dead)
+            } else if (input$vis == "Survival") {colorFactor(c("#7EAB46", "#CE3E35"), tree_data_arranged$Alive_or_Dead)
         } else { colorFactor(c("#EA9631", "#CE3E35","#F5F9F2", "#7EAB46", "#3AA1D9","#C65EAA"), tree_data_arranged$Species) }
         
         # values
@@ -219,23 +220,31 @@ server <- function(input, output) {
     # Generate fastest growth output
     output$fastestPlot <- renderPlot({
         
+        # Convert height NAs to zeros
         tree_data$Height[is.na(tree_data$Height)] <- 0
         
-        
+        # Filter data by year and calculate average height
         top5_fastest <- tree_data %>% 
             filter( Year == input$year_growth) %>%
             group_by(Species) %>% 
-            summarize(av_height = mean(Height)) %>% 
+            summarize(av_height = mean(Height)) %>%
             arrange( -av_height) %>% 
-            head(5) 
+            head(5)
         
+        # Round average height
+        top5_fastest$height_rounded<-round(top5_fastest$av_height, 2)
         
+        # Make Species into a factor with levels
         top5_fastest$Species <- factor(top5_fastest$Species, levels = top5_fastest$Species)
         
-        ggplot(top5_fastest, aes(x = Species, y = av_height)) + 
-            geom_bar(width = 0.75, fill="gold2", stat = "identity") +
+        # Create graph
+        ggplot(top5_fastest, aes(x = Species, y = height_rounded)) + 
+            geom_bar(width = 0.75, fill="#96A6A6", stat = "identity") +
+            geom_text(aes(label= paste(height_rounded, "m")), position=position_dodge(width=0.9), vjust=-0.25) +
             theme_classic() +
-            scale_y_continuous(expand = c(0,0)) +
+            # Adjust y axis so that limits change with max height of input year selected
+            scale_y_continuous(expand = c(0,0),
+                               limits = c(0, max(top5_fastest$height_rounded) + 0.05*(max(top5_fastest$height_rounded)))) + 
             xlab("Species") +
             ylab("Average Height (m)") +
             ggtitle(paste("Top 5 Fastest Growing Species", input$year_growth)) +
@@ -246,28 +255,34 @@ server <- function(input, output) {
     # Generate slowest growth output
     output$slowestPlot <- renderPlot({
         
-        tree_data$Height[is.na(tree_data$Height)] <- 0
-        
-        
+        # Filter data by year and calculate average height
         top5_slowest <- tree_data %>% 
             filter( Year == input$year_growth) %>%
             group_by(Species) %>% 
-            summarize(av_height = mean(Height)) %>% 
+            summarize(av_height = mean(Height)) %>%
             arrange( av_height) %>% 
-            head(5) 
+            head(5)
         
+        # Round average height
+        top5_slowest$height_rounded<-round(top5_slowest$av_height, 2)
         
+        # Make Species into a factor with levels
         top5_slowest$Species <- factor(top5_slowest$Species, levels = top5_slowest$Species)
         
-        ggplot(top5_slowest, aes(x = Species, y = av_height)) + 
-            geom_bar(width = 0.75, fill="darkturquoise", stat = "identity") +
+        # Create graph
+        ggplot(top5_slowest, aes(x = Species, y = height_rounded)) + 
+            geom_bar(width = 0.75, fill="#51BC9E", stat = "identity") +
+            geom_text(aes(label= paste(height_rounded, "m")), position=position_dodge(width=0.9), vjust=-0.25) +
             theme_classic() +
-            scale_y_continuous(expand = c(0,0)) +
+            # Adjust y axis so that limits change with max height of input year selected
+            scale_y_continuous(expand = c(0,0),
+                               limits = c(0, max(top5_slowest$height_rounded) + 0.05*(max(top5_slowest$height_rounded)))) + 
             xlab("Species") +
             ylab("Average Height (m)") +
             ggtitle(paste("Top 5 Slowest Growing Species", input$year_growth)) +
             theme(plot.title = element_text(hjust = 0.5)) +
             theme(legend.position="none")
+   
     })
     
     
@@ -308,6 +323,7 @@ server <- function(input, output) {
             mutate("Mortality Rate" = paste(final_table$"Mortality Rate" , "%"))
         
         final_table
+        
     }, options= list(paging = FALSE, searching = FALSE,  pageLength = 6))
 }
 
