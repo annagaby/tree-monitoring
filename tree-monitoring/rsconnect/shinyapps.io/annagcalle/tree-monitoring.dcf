@@ -5,8 +5,8 @@ account: annagcalle
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 1187295
-bundleId: 2437375
+bundleId: 2437509
 url: https://annagcalle.shinyapps.io/tree-monitoring/
-when: 1569248222.64756
+when: 1569251365.41167
 asMultiple: FALSE
 asStatic: FALSE

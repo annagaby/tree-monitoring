@@ -12,6 +12,9 @@ library(RColorBrewer)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
+    # Head
+    tags$head(
+        tags$style(HTML("@import url('https://fonts.googleapis.com/css?family=Source+Code+Pro&display=swap')"))),
     # Theme for the app
     theme = shinytheme("flatly"),
 
@@ -27,9 +30,9 @@ ui <- fluidPage(
                         h1("The App"),
                         p("The purpose of this app is to create interactive and user-friendly visualizations from reforestation data. It was designed considering the monitoring protocol of a reforestation project in the community of Sacha Waysa, located in Napo, Ecuador. The project will begin planting trees in 2019 and  yearly growth measurements  will be conducted until 2022. For now, the app contains mock data that will be replaced with real field data once it becomes available."),
                         h1("The Community: Sacha Waysa"),
-                        p("Sacha Waysa is a community committed to bringing back their ancestral practices through community tourism. Travelers visiting this community can enjoy traditional Kichwa food, dancing, handicrafts, and music, as well as take part in ancestral rituals, hikes to waterfalls, and more. By taking part in reforestation efforts, the community hopes to bring back their forest wildlife and ancestral plants."),
+                        p("Sacha Waysa is a community committed to bringing back their ancestral practices through community tourism. Travelers visiting this community can enjoy traditional Kichwa food, dancing, handicrafts, and music, as well as take part in ancestral rituals, hikes to waterfalls, and more. By taking part in reforestation efforts, the community hopes to bring back traditionally used fruit trees and hardwoods, and the forest wildlife that depends on these trees."),
                         h1("Yakum"),
-                        p("Yakum is a conservation organization empowering indigenous communities and mitigating climate change at the same time. They build nurseries, organize seed exchange events, conduct agroforestry workshops, and support reforestation initiatives. Learn more about their approach to avoid climate change by visiting their ",
+                        p("Yakum is a conservation organization empowering indigenous communities and mitigating climate change at the same time. They build nurseries, organize seed exchange events, conduct agroforestry workshops, and support reforestation initiatives. Yakum has ongoing reforestation projects with communities belonging to six Indigenous Nacionalities of Ecuador: Kichwa, Shuar, Achuar, Secoya, Cofan and Huarani. Learn more about their approach to avoid climate change by visiting their ",
                           a(href="https://yakum.org", " website.", target="_blank"))),
                
                # Second tab
@@ -105,12 +108,18 @@ ui <- fluidPage(
             
     # Create footer
     br(),
-    tags$footer("Developed by Anna Calle <annagcalle@bren.ucsb.edu> in programming language R version 3.6.1 (2019-07-05). Code on", tags$a(href ="https://github.com/annagaby/tree-monitoring", target="_blank", icon("github"),"GitHub.")),
+    tags$footer("Developed by Anna Calle <annagcalle@bren.ucsb.edu> with",
+                 tags$span(style = "font-family: 'Source Code Pro', monospace; font-size: 25px;" ,"Shiny"),
+                 "from",
+               img(src = "https://rstudio.com/wp-content/uploads/2018/10/RStudio-Logo-Flat.png", height = "30px"),
+                ".",
+               br(),
+             "R version 3.6.1 (2019-07-05). Code on", tags$a(href ="https://github.com/annagaby/tree-monitoring", target="_blank", icon("github"),"GitHub.")),
     br()
     
 )
 
-# Define server logic required to draw a histogram
+# Define server logic required for outputs
 server <- function(input, output) {
     
     # Read files
@@ -132,6 +141,7 @@ server <- function(input, output) {
         
         # Create tree location map
         
+        # Titles for legend
         titles <-  if(input$vis == "Survival"){ paste("Tree Survival", input$year_map)
         } else {
             paste("Species Composition", input$year_map)
@@ -142,12 +152,11 @@ server <- function(input, output) {
             } else if (input$vis == "Survival") {colorFactor(c("#7EAB46", "#CE3E35"), tree_data_arranged$Alive_or_Dead)
         } else { colorFactor(c("#EA9631", "#CE3E35","#F5F9F2", "#7EAB46", "#3AA1D9","#C65EAA"), tree_data_arranged$Species) }
         
-        # values
+        # Values for legend
         values <- if (input$vis == "Species") {~Species
              } else { ~Alive_or_Dead}
         
-        # Icons with different colors depending on vis input selected
-        
+        # Icons with different colors
         icons <- if (input$vis == "Species") {
             # Icons for species input
             awesomeIcons(
@@ -168,7 +177,7 @@ server <- function(input, output) {
                 markerColor = ifelse( tree_data_arranged$Alive_or_Dead == "Dead", "red", "green")
             )}
         
-        # Map
+        # Create map
         map <- leaflet(data = tree_data_arranged) %>%
             addTiles() %>% 
             addPolygons(data = sach_polygon,
@@ -289,6 +298,7 @@ server <- function(input, output) {
     # Generate mortalities output
     output$mortalityTable <- renderDataTable({
         
+        # Create count table depending on mortalities input
         table <- if (all(input$mort == c("1", "2","3"))){
             tree_data %>%
                 count(Alive_or_Dead, Species, Year)
@@ -312,6 +322,7 @@ server <- function(input, output) {
                count(Alive_or_Dead, Year)
        } 
        
+        # Create final table
         final_table <- table %>% 
             spread(Alive_or_Dead, n) %>% 
             mutate("Mortality Rate" = round(Dead/(Alive + Dead)*100, digits = 2))
@@ -319,6 +330,7 @@ server <- function(input, output) {
         # Change NA's to zeros
         final_table[is.na(final_table)] <- 0
         
+        # Add percentage sign
         final_table <- final_table %>% 
             mutate("Mortality Rate" = paste(final_table$"Mortality Rate" , "%"))
         
