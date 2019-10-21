@@ -28,17 +28,18 @@ ui <- fluidPage(
                # First tab
                tabPanel(div(icon("info-circle"),"About"),
                         h1("The App"),
-                        p("The purpose of this app is to create interactive and user-friendly visualizations from reforestation data. It was designed considering the monitoring protocol of a reforestation project in the community of Sacha Waysa, located in Napo, Ecuador. The project will begin planting trees in 2019 and  yearly growth measurements  will be conducted until 2022. For now, the app contains mock data that will be replaced with real field data once it becomes available."),
+                        p("The purpose of this app is to create interactive and user-friendly visualizations from reforestation data. It was designed considering the monitoring protocol of a reforestation project that will take place in the community of Sacha Waysa. The project will begin planting trees in 2019 and yearly growth measurements will be conducted until 2022. The data that will be recorded, according to the protocol, is tree ID, geographic coordinates, species, height, and mortalities, For now, the app contains mock data that will be replaced with real field data once it becomes available.", align = "justify"),
                         h1("The Community: Sacha Waysa"),
-                        p("Sacha Waysa is a community committed to bringing back their ancestral practices through community tourism. Travelers visiting this community can enjoy traditional Kichwa food, dancing, handicrafts, and music, as well as take part in ancestral rituals, hikes to waterfalls, and more. By taking part in reforestation efforts, the community hopes to bring back traditionally used fruit trees and hardwoods, and the forest wildlife that depends on these trees."),
+                        p("Sacha Waysa is a community committed to bringing back their ancestral practices through community tourism. It is located in the province of Napo, Ecuador. Travelers visiting this community can enjoy traditional Kichwa food, dancing, handicrafts, and music, as well as take part in ancestral rituals, hikes to waterfalls, and more. By taking part in reforestation efforts, the community hopes to bring back traditionally used fruit trees and hardwoods, and the forest wildlife that depends on these trees.", align = "justify"),
+                        tags$img(src = "sacha_waysa.jpg", width = "100%"),
                         h1("Yakum"),
-                        p("Yakum is a conservation organization empowering indigenous communities and mitigating climate change at the same time. They build nurseries, organize seed exchange events, conduct agroforestry workshops, and support reforestation initiatives. Yakum has ongoing reforestation projects with communities belonging to six Indigenous Nacionalities of Ecuador: Kichwa, Shuar, Achuar, Secoya, Cofan and Huarani. Learn more about their approach to avoid climate change by visiting their ",
-                          a(href="https://yakum.org", " website.", target="_blank"))),
+                        p("Yakum is a conservation organization empowering indigenous communities and mitigating climate change at the same time. They build nurseries, organize seed exchange events, conduct agroforestry workshops, and support reforestation initiatives. Yakum has ongoing reforestation projects with communities belonging to six Indigenous Nacionalities of Ecuador: Kichwa, Shuar, Achuar, Secoya, Cofan and Huarani. Learn more about their approach to avoid climate change by visiting their",
+                          a(href="https://yakum.org", " website.", target="_blank"), align = "justify")),
                
                # Second tab
                tabPanel(div(icon("map-pin"),"Map"),
                         div(class="alert alert-dismissible alert-success",
-                                 "Note: Click on individual trees to display info!"),
+                                 strong("Note: Click on individual trees to display info!")),
                         leafletOutput("mymap",height = 500),
                         br(),
                         # Fluid row for inputs
@@ -108,16 +109,16 @@ ui <- fluidPage(
             
     # Create footer
     br(),
+    div( style = "background-color: #ECF0F1; padding: 15px; text-align: center;",
     tags$footer("Developed by Anna Calle <annagcalle@bren.ucsb.edu> with",
                  tags$span(style = "font-family: 'Source Code Pro', monospace; font-size: 25px;" ,"Shiny"),
                  "from",
                img(src = "https://rstudio.com/wp-content/uploads/2018/10/RStudio-Logo-Flat.png", height = "30px"),
                 ".",
                br(),
-             "R version 3.6.1 (2019-07-05). Code on", tags$a(href ="https://github.com/annagaby/tree-monitoring", target="_blank", icon("github"),"GitHub.")),
-    br()
+             "R version 3.6.1 (2019-07-05). Code on  ", tags$a(href ="https://github.com/annagaby/tree-monitoring", target="_blank", icon("github"),"GitHub."))
     
-)
+))
 
 # Define server logic required for outputs
 server <- function(input, output) {
